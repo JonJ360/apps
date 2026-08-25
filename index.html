@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>360 Apps</title>
+<style>
+:root{
+  --bg:#E9ECF1; --ink:#222A33; --muted:#6E7885; --line:#D5DBE3; --line2:#C3CBD6;
+  --silver1:#FDFDFE; --silver2:#E6EAF0;
+  --blue:#2E6FD9; --blue2:#1F5AB8; --blue-line:#B9D0F2;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --lift:0 1px 0 rgba(255,255,255,.9) inset, 0 1px 2px rgba(28,40,58,.10), 0 4px 10px rgba(28,40,58,.05);
+  --press:0 1px 2px rgba(28,40,58,.14) inset;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-text-size-adjust:100%}
+header{background:linear-gradient(180deg,#F6F8FB,#DFE4EC);border-bottom:1px solid var(--line2);
+  padding:14px 18px;box-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 2px 8px rgba(28,40,58,.06);
+  display:flex;align-items:baseline;gap:10px}
+.brand{font-weight:750;letter-spacing:.06em;font-size:15px;color:#2C3742}
+.brand b{color:var(--blue)}
+.ver{font-family:var(--mono);font-size:11px;color:var(--muted)}
+main{max-width:760px;margin:0 auto;padding:22px 16px 48px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+a.app{display:flex;flex-direction:column;gap:6px;padding:18px 16px;border-radius:14px;text-decoration:none;color:var(--ink);
+  background:linear-gradient(180deg,#FFFFFF,#F1F4F8);border:1px solid var(--line);box-shadow:var(--lift);min-height:112px}
+a.app:hover{background:linear-gradient(180deg,#fff,#EDF1F6);border-color:#AEBCCB}
+a.app:active{box-shadow:var(--press);transform:translateY(1px)}
+a.app .glyph{font-family:var(--mono);font-weight:800;font-size:15px;letter-spacing:.04em;color:#1B4A94;
+  background:linear-gradient(180deg,#F3F8FF,#DEEAFB);border:1px solid var(--blue-line);border-radius:9px;
+  padding:4px 10px;align-self:flex-start}
+a.app .nm{font-weight:700;font-size:14.5px;line-height:1.25}
+a.app .ds{font-size:12px;color:var(--muted);line-height:1.35}
+a.app.soon{opacity:.55;pointer-events:none}
+a.app.soon .glyph{color:var(--muted);background:linear-gradient(180deg,#F8F9FB,#EBEEF2);border-color:var(--line2)}
+.sect{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;margin:26px 2px 10px}
+.sect:first-of-type{margin-top:4px}
+footer{max-width:760px;margin:0 auto;padding:0 16px 30px;font-size:11.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header><span class="brand">360 <b>APPS</b></span><span class="ver">v1.00</span></header>
+<main>
+  <div class="sect">Live</div>
+  <div class="grid" id="live"></div>
+  <div class="sect">Coming</div>
+  <div class="grid" id="soon"></div>
+</main>
+<footer>One tap per app. Each app keeps its own URL, version, and docs — this page is just the front door. Edit the APPS list at the top of this file to add or move apps.</footer>
+<script>
+// ====== EDIT THIS LIST ======
+const APPS=[
+  {glyph:"AR",  name:"AR Collections CRM", desc:"Aging, collections, BBC",        url:"https://jonj360.github.io/SMI-AR-CRM/", live:true},
+  {glyph:"AST", name:"Asset Register",     desc:"Vehicles, titles, insurance",    url:"https://jonj360.github.io/SMI-Assets/", live:true},
+  {glyph:"TT",  name:"Time Tracker",       desc:"360 billing time",               url:"https://jonj360.github.io/",            live:true},
+  {glyph:"DT",  name:"Detailer Tracker",   desc:"Detailing jobs",                 url:"#",                                     live:true},
+  {glyph:"RBR", name:"Rebar Tracker",      desc:"Rebuild in progress",            url:"#",                                     live:false}
+];
+// ============================
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const card=a=>`<a class="app${a.live?"":" soon"}" href="${esc(a.url)}">
+  <span class="glyph">${esc(a.glyph)}</span>
+  <span class="nm">${esc(a.name)}</span>
+  <span class="ds">${esc(a.desc)}</span></a>`;
+document.getElementById("live").innerHTML=APPS.filter(a=>a.live).map(card).join("");
+document.getElementById("soon").innerHTML=APPS.filter(a=>!a.live).map(card).join("")||'<span class="ds" style="color:var(--muted);font-size:12px">Nothing queued.</span>';
+</script>
+</body>
+</html>

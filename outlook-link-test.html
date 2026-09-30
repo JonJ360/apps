@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="robots" content="noindex,nofollow"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; connect-src 'none'"><title>Open in Outlook — Android test</title><style>body{font:18px system-ui,sans-serif;max-width:38rem;margin:3rem auto;padding:0 1rem;color:#172a42;background:#f5f8fc}a{display:block;padding:1rem;margin:1rem 0;background:#0868bb;color:white;border-radius:.6rem;text-decoration:none}a[hidden]{display:none}p{line-height:1.55}small{color:#415773}</style></head><body><h1>Open in Outlook</h1><p id="status" role="status">No valid Outlook message link supplied.</p><a id="native" hidden rel="noreferrer">Open in Outlook</a><a id="intent" hidden rel="noreferrer">Try Android intent</a><p>This is a routing test, not confirmation that Outlook can open this message. Nothing opens automatically.</p><p>If Telegram blocks either button, use its menu to open this page in Chrome, then tap again. Outlook must be installed and signed in to the intended account.</p><small>The message target is read only from the URL fragment on your device. This page has no analytics, external dependencies, storage, or web fallback. The full link can still be seen by anyone you share it with and may remain in browser/chat history.</small><script>
+'use strict';
+try {
+ const raw=decodeURIComponent(location.hash.slice(1));
+ const u=new URL(raw);
+ const keys=[...u.searchParams.keys()];
+ const id=u.searchParams.get('restID');
+ const account=u.searchParams.get('account');
+ if(u.protocol!=='ms-outlook:'||u.hostname!=='emails'||u.pathname!=='/message/open'||u.username||u.password||u.port||u.hash||keys.length!==2||!keys.includes('restID')||!keys.includes('account')||!id||! /^[A-Za-z0-9_=-]+$/.test(id)||!account||! /^[^\s@;#]+@[^\s@;#]+$/.test(account)) throw new Error('Invalid target');
+ const target='ms-outlook://emails/message/open?'+new URLSearchParams({restID:id,account:account}).toString();
+ const native=document.getElementById('native');
+ native.href=target; native.hidden=false;
+ const intent=document.getElementById('intent');
+ intent.href='intent://'+target.slice('ms-outlook://'.length)+'#Intent;scheme=ms-outlook;package=com.microsoft.office.outlook;end'; intent.hidden=false;
+ document.getElementById('status').textContent='Message link ready. Tap a button to test on Android.';
+} catch (_) { document.getElementById('status').textContent='No valid Outlook message link supplied. Reopen the complete test link, including its fragment.'; }
+</script></body></html>

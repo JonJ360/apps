@@ -6,8 +6,8 @@ window.Shared360Session=(()=>{
  const client=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
  async function current(){
   let {data,error}=await client.auth.getSession();
-  if(error)throw error;
-  let session=data.session;
+  // A stale SDK refresh must not hide a usable existing Asset session.
+  let session=error?null:data.session;
   if(!session){
    // Asset Register predates the SDK; import its existing session through the SDK.
    let legacy=null;try{legacy=JSON.parse(localStorage.getItem('assets-auth-v1')||'null');}catch{}
@@ -18,7 +18,7 @@ window.Shared360Session=(()=>{
     if(session)localStorage.setItem('assets-auth-v1',JSON.stringify({email:session.user.email,access_token:session.access_token,refresh_token:session.refresh_token,exp:session.expires_at*1000-60000}));
    }
   }
-  if(!session)return null;
+  if(!session){if(error)throw error;return null;}
   const verified=await client.auth.getUser();
   if(verified.error)throw verified.error;
   return {session,user:verified.data.user};

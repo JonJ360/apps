@@ -77,6 +77,44 @@ export async function save(
     );
   return actual;
 }
+export async function read(kind, id) {
+  await identity();
+  if (!KINDS.includes(kind)) throw new Error("Unsupported register");
+  const rows = unwrap(
+    await session()
+      .client.from(`cc_${kind}`)
+      .select("*")
+      .eq("id", id)
+      .range(0, 1),
+  );
+  if (rows.length > 1) throw new Error("Ambiguous target");
+  return rows[0] || null;
+}
+export async function readObject(path) {
+  await identity();
+  const result = await session()
+    .client.storage.from("cc-private")
+    .download(path);
+  if (
+    result.error &&
+    (String(result.error.statusCode) === "404" ||
+      result.error.message === "Object not found")
+  )
+    return null;
+  return new Uint8Array(await unwrap(result).arrayBuffer());
+}
+export async function uploadObject(path, bytes, mime) {
+  await identity();
+  unwrap(
+    await session()
+      .client.storage.from("cc-private")
+      .upload(path, new Blob([bytes], { type: mime }), {
+        contentType: mime,
+        upsert: false,
+        cacheControl: "0",
+      }),
+  );
+}
 const mimeByExt = {
   pdf: "application/pdf",
   png: "image/png",

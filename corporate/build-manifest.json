@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "built_at": "2026-10-21T15:34:45.926Z",
+  "built_at": "2026-10-21T16:56:12.332Z",
   "files": [
     {
       "path": "index.html",
@@ -9,18 +9,23 @@
     },
     {
       "path": "styles.css",
-      "bytes": 18555,
-      "sha256": "cf7cf015fb477f419c0deefd6d0e2481d805d36ab58f1ef0a761b75edd92965c"
+      "bytes": 18914,
+      "sha256": "72eff33d65449aea491e6e5f1937626460cc97761363af41a69dd18fbbea92b8"
     },
     {
       "path": "app.js",
-      "bytes": 40957,
-      "sha256": "b54cdf8b046eb15358d8507cc438d1a83563c28444f9620bb875ca008a677971"
+      "bytes": 47569,
+      "sha256": "02d842468e95baa6d090c6954fd39da749dd838f94911a7bfe7d7f1dc32046dd"
     },
     {
       "path": "api.js",
-      "bytes": 6430,
-      "sha256": "635297b4343663aed7c855e0d5421c2aa0baa8fb2ea88e2457f575d11a989a0c"
+      "bytes": 7451,
+      "sha256": "654dda20438771655bf0b030d4e235b0fbf7baf88f895299b02a13d13deba97a"
+    },
+    {
+      "path": "intake.js",
+      "bytes": 10310,
+      "sha256": "60ea4ee651769e351c8351be8ac5f01a1f90e5e6216b9ede6f513954e5e697e9"
     },
     {
       "path": "core.js",
@@ -29,8 +34,8 @@
     },
     {
       "path": "schema.js",
-      "bytes": 5116,
-      "sha256": "f433d72382c1dddafcbbd3d9df0b5a5c59cf2ad013e8605ef09c6499eefea6f6"
+      "bytes": 6070,
+      "sha256": "52b7a9a37c70b800fb5d34ff7304f47e3ce905cc63f29615bc21131747573b97"
     },
     {
       "path": "shared-session.js",

@@ -1,4 +1,5 @@
 import * as api from "./api.js";
+import { prepareIntake, runIntake } from "./intake.js";
 import {
   OWNER,
   maskEin,
@@ -30,9 +31,11 @@ const NAV = [
   ["entities", "Explore", "▦"],
   ["people", "People", "♙"],
   ["documents", "Documents", "▤"],
+  ["insurance", "Insurance", "◇"],
   ["obligations", "Obligations", "◷"],
   ["groups", "Groups", "◇"],
   ["activity", "Activity", "≋"],
+  ["intake", "Reviewed intake", "↓"],
 ];
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
@@ -208,7 +211,145 @@ function render() {
   }
   if (state.view === "entities") renderExplore();
   else if (state.view === "activity") renderActivity();
+  else if (state.view === "intake") renderIntake();
   else renderRegister(state.view);
+}
+function renderIntake() {
+  const gen = state.generation;
+  let sequence = 0;
+  const preview = el("div", { class: "intake-preview" }),
+    notice = el("p", { role: "alert" });
+  const input = el("input", {
+    type: "file",
+    accept: ".json,application/json",
+    "aria-label": "Reviewed JSON file",
+    onchange: async () => {
+      const ticket = ++sequence;
+      preview.replaceChildren();
+      notice.textContent = "";
+      const file = input.files[0];
+      if (!file) return;
+      try {
+        if (file.size > 50 * 1024 * 1024) throw Error("JSON exceeds 50 MiB");
+        const source = await file.text(),
+          bundle = JSON.parse(source),
+          entries = await prepareIntake(bundle);
+        if (
+          ticket !== sequence ||
+          gen !== state.generation ||
+          !preview.isConnected
+        )
+          return;
+        preview.append(
+          text(
+            "h2",
+            `${entries.length} entries validated — review every source`,
+          ),
+        );
+        for (const e of entries) {
+          const display = JSON.stringify(
+            { data: e.data, links: e.links },
+            null,
+            2,
+          ).replace(/\b\d{2}-\d{7}\b/g, (v) => maskEin(v));
+          preview.append(
+            el(
+              "section",
+              { class: "record-row" },
+              el(
+                "div",
+                {},
+                text("h3", `${e.kind} / ${e.key}`),
+                text(
+                  "p",
+                  `Source: ${e.data.source || "Not recorded"}`.replace(
+                    /\b\d{2}-\d{7}\b/g,
+                    (v) => maskEin(v),
+                  ),
+                ),
+                text("pre", display),
+              ),
+            ),
+          );
+        }
+        const reviewed = el("input", { type: "checkbox" });
+        const commit = button(
+          "Commit reviewed intake",
+          async () => {
+            if (!reviewed.checked) return;
+            commit.disabled = true;
+            input.disabled = true;
+            reviewed.disabled = true;
+            notice.textContent =
+              "Import running. Partial commits are possible; keep the original JSON for retry.";
+            try {
+              const results = await runIntake(
+                JSON.parse(source),
+                api,
+                () => state.ready && gen === state.generation,
+              );
+              if (gen !== state.generation || !preview.isConnected) return;
+              const count = (s) => results.filter((r) => r.status === s).length;
+              notice.textContent = `Created: ${count("created")} · Skipped: ${count("skipped")} · Errors: ${count("error")}`;
+              preview.replaceChildren(
+                text("h2", "Intake results"),
+                text(
+                  "p",
+                  "Existing exact records were skipped; conflicts were not overwritten. Select the same original JSON again to reconcile uncertain saves or resume pending uploads.",
+                ),
+                ...results.map((r) =>
+                  text(
+                    "p",
+                    `${r.key}: ${r.status}${r.error ? " — " + r.error : ""}`,
+                  ),
+                ),
+                button("Download intake results", () =>
+                  saveBlob(
+                    new Blob([JSON.stringify(results, null, 2)], {
+                      type: "application/json",
+                    }),
+                    "corporate-intake-results.json",
+                  ),
+                ),
+              );
+              const data = await api.loadAll();
+              if (gen === state.generation) state.data = data;
+            } catch (error) {
+              if (gen === state.generation)
+                notice.textContent = messageError(error);
+            } finally {
+              input.disabled = false;
+            }
+          },
+          "primary",
+          { disabled: true },
+        );
+        reviewed.addEventListener("change", () => {
+          commit.disabled = !reviewed.checked;
+        });
+        preview.append(
+          el("label", {}, reviewed, "I reviewed every entry and its source"),
+          commit,
+        );
+      } catch (error) {
+        if (ticket === sequence && gen === state.generation)
+          notice.textContent = messageError(error);
+      }
+    },
+  });
+  root.append(
+    heading(
+      "Reviewed intake",
+      "Choose a reviewed format-v1 JSON file. All entries and original document hashes are validated before any writes. No overwrites; retries use permanent stable keys.",
+    ),
+    text(
+      "p",
+      "Private sources stay in this browser and the private corporate backend. This is not a transaction across records and storage. Historical insurance facts do not certify current coverage.",
+    ),
+    input,
+    notice,
+    preview,
+  );
 }
 function selectFilter(label, values, value, change) {
   const s = el(
@@ -274,6 +415,7 @@ function renderExplore() {
         ["entities", "Entities"],
         ["groups", "Groups"],
         ["documents", "Documents"],
+        ["insurance", "Insurance"],
       ].map(([k, label]) =>
         el(
           "div",
@@ -522,6 +664,7 @@ function renderEntity() {
     ["roles", "People & authority"],
     ["ownership", "Ownership"],
     ["documents", "Documents"],
+    ["insurance", "Insurance"],
     ["obligations", "Obligations"],
     ["memberships", "Groups"],
     ["activity", "Activity"],
@@ -618,6 +761,8 @@ function details(kind, record) {
   );
 }
 function rowTitle(kind, r) {
+  if (kind === "insurance")
+    return `${r.data.policy_type} · ${r.data.carrier || "Carrier not recorded"} · ${r.data.policy_number || "Number not recorded"}`;
   if (kind === "roles")
     return `${recordName(find("people", r.data.person_id))} · ${r.data.title}`;
   if (kind === "ownership")
@@ -631,6 +776,10 @@ function recordRow(kind, r) {
     info = [];
   if (d.entity_id && !state.entity)
     info.push(recordName(find("entities", d.entity_id)));
+  if (kind === "insurance")
+    info.push(
+      `${d.verification} · ${d.ends_on && d.ends_on < today() ? "Expired term — renewal review needed" : "Current coverage not certified"} · ${d.source || "Source not recorded"}`,
+    );
   if (kind === "roles")
     info.push(`Authority: ${d.authority || "Not verified"}`);
   if (d.starts_on)
@@ -674,6 +823,36 @@ function recordRow(kind, r) {
     } else if (d.status === "pending")
       actions.unshift(button("Retry finalization", () => retryFinalize(r)));
   }
+  const related = [];
+  if (kind === "insurance") {
+    const fields = ["carrier", "policy_number", "starts_on", "ends_on"];
+    if (fields.every((k) => d[k])) {
+      for (const other of active("insurance").filter(
+        (x) =>
+          x.id !== r.id &&
+          x.data.entity_id !== d.entity_id &&
+          fields.every((k) => x.data[k] === d[k]),
+      )) {
+        related.push(
+          button(
+            `Matching policy facts: ${recordName(find("entities", other.data.entity_id))}`,
+            () => {
+              state.entity = other.data.entity_id;
+              state.tab = "insurance";
+              render();
+            },
+          ),
+        );
+      }
+      if (related.length)
+        related.unshift(
+          text(
+            "p",
+            "Matching documented carrier, number and term only — not inferred coverage.",
+          ),
+        );
+    }
+  }
   const summary = el(
     "details",
     { class: "row-detail" },
@@ -689,6 +868,7 @@ function recordRow(kind, r) {
       text("h3", rowTitle(kind, r)),
       r.archived ? text("span", "ARCHIVED", "tag warn") : null,
       info.map((s) => text("p", s)),
+      related,
       summary,
     ),
     el("div", { class: "row-actions" }, actions),
@@ -698,13 +878,15 @@ function renderRegister(kind) {
   root.append(
     heading(
       SCHEMA[kind].label,
-      kind === "people"
-        ? "One shared directory. Roles and authority belong to dated entity assignments."
-        : kind === "documents"
-          ? "Your private document register. Originals stay intact; each revision is a separate version."
-          : kind === "obligations"
-            ? "Known commitments, accountable owners, and the evidence of completion."
-            : "A portfolio can have many structures. Groups are organizational, not legal ownership.",
+      kind === "insurance"
+        ? "Source-backed policy facts. Historical evidence and term dates do not certify coverage or compliance. Review renewals against current evidence."
+        : kind === "people"
+          ? "One shared directory. Roles and authority belong to dated entity assignments."
+          : kind === "documents"
+            ? "Your private document register. Originals stay intact; each revision is a separate version."
+            : kind === "obligations"
+              ? "Known commitments, accountable owners, and the evidence of completion."
+              : "A portfolio can have many structures. Groups are organizational, not legal ownership.",
       [button(`+ Add ${SCHEMA[kind].singular}`, () => edit(kind), "primary")],
     ),
     toolbar(),
@@ -1392,7 +1574,9 @@ setInterval(async () => {
     lock(messageError(e), true);
   }
 }, 60000);
-window.addEventListener("pagehide", () => lock("Session verification required."));
+window.addEventListener("pagehide", () =>
+  lock("Session verification required."),
+);
 window.addEventListener("pageshow", (event) => {
   if (event.persisted) bootstrap();
 });

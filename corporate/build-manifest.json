@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "built_at": "2026-10-21T15:34:45.926Z",
+  "files": [
+    {
+      "path": "index.html",
+      "bytes": 2260,
+      "sha256": "4decb0031123e7ca4afc72bbd3f4e6aceb0c605846462b3ccf7cba3db4c3b087"
+    },
+    {
+      "path": "styles.css",
+      "bytes": 18555,
+      "sha256": "cf7cf015fb477f419c0deefd6d0e2481d805d36ab58f1ef0a761b75edd92965c"
+    },
+    {
+      "path": "app.js",
+      "bytes": 40957,
+      "sha256": "b54cdf8b046eb15358d8507cc438d1a83563c28444f9620bb875ca008a677971"
+    },
+    {
+      "path": "api.js",
+      "bytes": 6430,
+      "sha256": "635297b4343663aed7c855e0d5421c2aa0baa8fb2ea88e2457f575d11a989a0c"
+    },
+    {
+      "path": "core.js",
+      "bytes": 4171,
+      "sha256": "74fccfed6d4f0aefa88e1782c079533df406844b7387b065e4e68be1b7d084ca"
+    },
+    {
+      "path": "schema.js",
+      "bytes": 5116,
+      "sha256": "f433d72382c1dddafcbbd3d9df0b5a5c59cf2ad013e8605ef09c6499eefea6f6"
+    },
+    {
+      "path": "shared-session.js",
+      "bytes": 1446,
+      "sha256": "645bc4fc0d6138f5b260b562f3e581a6309a75b6f68c9564dc411ff298332fe9"
+    },
+    {
+      "path": "vendor/supabase.min.js",
+      "bytes": 218199,
+      "sha256": "36d1ad9948fdbba9c3d696e27050f70aafce88981938b6a814a6ad8abdf171ba"
+    }
+  ]
+}

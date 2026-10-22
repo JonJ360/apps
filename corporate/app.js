@@ -661,7 +661,6 @@ function renderEntity() {
   );
   const tabs = [
     ["overview", "Overview"],
-    ["roles", "People & authority"],
     ["ownership", "Ownership"],
     ["documents", "Documents"],
     ["insurance", "Insurance"],
@@ -738,7 +737,85 @@ function renderEntity() {
         ),
       );
     for (const r of relevant) target.append(recordRow(kind, r));
+    if (kind === "ownership") renderPositions(record, relevant);
   }
+}
+function positionStatus(r) {
+  const d = r.data;
+  if (r.archived) return "Archived · Historical · Current status unconfirmed";
+  if (d.ends_on && d.ends_on < today())
+    return "Historical · Current status unconfirmed";
+  if (d.starts_on && d.starts_on > today())
+    return "Future-dated · Current status unconfirmed";
+  const historical = /historical|former|past officer/i.test(
+    `${d.notes || ""} ${d.source || ""} ${d.title || ""}`,
+  );
+  return `${historical ? "Historical evidence · " : ""}Current status unconfirmed`;
+}
+function positionLine(r) {
+  return text("p", `${r.data.title} · ${positionStatus(r)}`, "position-line");
+}
+function personPositions(personId, entityId) {
+  return personId
+    ? rows("roles").filter(
+        (r) => r.data.person_id === personId && r.data.entity_id === entityId,
+      )
+    : [];
+}
+function renderPositions(entity, interests) {
+  const roles = rows("roles").filter((r) => r.data.entity_id === entity.id);
+  const ownerIds = new Set(
+    interests.map((r) => r.data.person_id).filter(Boolean),
+  );
+  const otherIds = [...new Set(roles.map((r) => r.data.person_id))].filter(
+    (id) => !ownerIds.has(id),
+  );
+  if (otherIds.length)
+    root.append(
+      el(
+        "section",
+        {
+          class: "other-officers",
+          "aria-label": "Other officers and positions",
+        },
+        text("h2", "Other officers & positions"),
+        text(
+          "p",
+          "Recorded positions with no ownership interest recorded here.",
+          "muted small",
+        ),
+        otherIds.map((id) =>
+          el(
+            "article",
+            { class: "officer-summary" },
+            text("h3", recordName(find("people", id))),
+            personPositions(id, entity.id).map(positionLine),
+          ),
+        ),
+      ),
+    );
+  root.append(
+    el(
+      "details",
+      { class: "positions-manager" },
+      text("summary", "Manage positions & authority"),
+      text(
+        "p",
+        "A title or ownership interest is not evidence of signing authority. Historical assignments are retained; current status is not assumed. Review each record and its source.",
+        "notice",
+      ),
+      button(
+        "+ Add role",
+        () => edit("roles", null, { entity_id: entity.id }),
+        "primary",
+      ),
+      el(
+        "div",
+        { class: "record-list" },
+        roles.map((r) => recordRow("roles", r)),
+      ),
+    ),
+  );
 }
 function details(kind, record) {
   return el(
@@ -861,11 +938,36 @@ function recordRow(kind, r) {
   );
   return el(
     "article",
-    { class: "record-row" },
+    { class: `record-row${kind === "ownership" ? " ownership-row" : ""}` },
     el(
       "div",
       { class: "record-main" },
-      text("h3", rowTitle(kind, r)),
+      text(
+        "h3",
+        kind === "ownership"
+          ? recordName(
+              find(
+                d.person_id ? "people" : "entities",
+                d.person_id || d.owner_entity_id,
+              ),
+            )
+          : rowTitle(kind, r),
+      ),
+      kind === "ownership"
+        ? [
+            personPositions(d.person_id, d.entity_id).map(positionLine),
+            d.person_id && !personPositions(d.person_id, d.entity_id).length
+              ? text(
+                  "p",
+                  "No position recorded for this entity",
+                  "position-line",
+                )
+              : null,
+            text("span", `${d.percentage}% interest`, "ownership-metric"),
+            text("p", positionStatus(r), "position-status"),
+          ]
+        : null,
+      kind === "roles" ? text("p", positionStatus(r), "position-status") : null,
       r.archived ? text("span", "ARCHIVED", "tag warn") : null,
       info.map((s) => text("p", s)),
       related,

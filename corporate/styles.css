@@ -1,14 +1,16 @@
-/* Original black-dial / brushed-steel register. No remote fonts or tracking. */
+/* Panda palette: ivory reading surfaces, black metrics, steel edges.
+   Ribbing is confined to navigation. No remote fonts or tracking. */
 :root {
-  --bg: #101213;
-  --panel: #191c1e;
-  --raised: #202426;
-  --line: #383e41;
-  --muted: #a0aaae;
-  --ink: #f0f3f3;
-  --ice: #b9def0;
-  --warn: #e0c89a;
-  --bad: #efa69f;
+  color-scheme: light;
+  --bg: #f6f5f0;
+  --panel: #ffffff;
+  --raised: #eceeeb;
+  --line: #b8bdbd;
+  --muted: #555f63;
+  --ink: #181b1d;
+  --ice: #254c5c;
+  --warn: #77531d;
+  --bad: #a12e28;
   --rail: 218px;
   --radius: 12px;
   font-family: Inter, "Segoe UI", Arial, sans-serif;
@@ -829,6 +831,199 @@ dialog::backdrop {
 #print-sheet {
   display: none;
 }
+/* High-contrast reading surfaces and compact black subdial-like chiclets. */
+.rail {
+  --ink: #f6f7f7;
+  --ice: #c5dce5;
+}
+.brand-dial {
+  border-radius: 16px;
+  box-shadow: inset 0 1px #ffffff22;
+}
+.topbar {
+  background: #fff;
+  border-bottom: 1px solid #aeb5b7;
+  box-shadow: inset 0 3px #191c1e;
+}
+.private-dot {
+  color: #46565e;
+}
+footer,
+.detail,
+.dialog-head,
+.dialog-actions,
+.packet-item {
+  border-color: var(--line);
+}
+footer,
+.section-label,
+.field,
+.field-note,
+.notice {
+  color: var(--muted);
+}
+button:hover:not(:disabled) {
+  background: #e3e7e7;
+  border-color: #68767c;
+}
+.rail button:hover:not(:disabled) {
+  background: #30383b;
+}
+.primary {
+  background: #191d1f;
+  color: #fff;
+  border-color: #626b70;
+  box-shadow: inset 0 1px #ffffff2b;
+}
+.primary:hover:not(:disabled) {
+  background: #343e43;
+  color: #fff;
+}
+input,
+select,
+textarea {
+  background: #fff;
+  border-color: #a2aaad;
+}
+input::placeholder,
+textarea::placeholder {
+  color: #626d72;
+}
+.search:before {
+  color: #526169;
+}
+.stats {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border: 0;
+  gap: 10px;
+  padding: 0;
+}
+.stat,
+.stat:first-child,
+.stat:last-child {
+  padding: 17px 20px;
+  border: 1px solid #60696e;
+  border-radius: 12px;
+  background: #191d1f;
+  color: #fff;
+  box-shadow: inset 0 1px #ffffff26;
+}
+.stat-label {
+  color: #c7ced0;
+}
+.entity-card {
+  background: #fff;
+  border-color: #adb5b7;
+  box-shadow:
+    0 2px 5px #18212608,
+    inset 0 1px #fff;
+}
+.monogram {
+  background: #191d1f;
+  color: #fff;
+  border-color: #596368;
+}
+.favorite {
+  color: #59676e;
+}
+.card-legal,
+.card-foot {
+  color: #566168;
+}
+.card-foot {
+  border-color: #d3d7d7;
+}
+.tag {
+  color: #344750;
+  border-color: #a6b2b8;
+  background: #f7f8f7;
+}
+.tag.warn {
+  color: #77531d;
+  border-color: #bda77e;
+}
+.empty {
+  background: #fff;
+  border-color: #a0aaae;
+}
+.notice {
+  background: #edf0ef;
+  border-left-color: #566c76;
+}
+.record-row,
+dialog {
+  background: #fff;
+  border-color: #aeb6b8;
+}
+dialog {
+  box-shadow: 0 25px 90px #0006;
+}
+dialog::backdrop {
+  background: #101719aa;
+}
+.audit-row pre {
+  background: #e9edeb;
+}
+.ownership-row h3 {
+  margin-bottom: 4px;
+  font-size: 16px;
+}
+.record-row .position-line,
+.position-line {
+  color: #45545b;
+  font-size: 12px;
+  line-height: 1.65;
+  margin: 3px 0;
+  overflow-wrap: anywhere;
+}
+.ownership-metric {
+  display: inline-block;
+  margin: 12px 0 5px;
+  padding: 7px 11px;
+  background: #191d1f;
+  color: #fff;
+  border: 1px solid #596368;
+  border-radius: 6px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.record-row .position-status {
+  font-size: 11px;
+  color: #635038;
+}
+.other-officers {
+  margin-top: 28px;
+}
+.other-officers h2 {
+  font-size: 15px;
+  font-weight: 600;
+}
+.officer-summary {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+}
+.officer-summary h3 {
+  font-size: 14px;
+  margin: 0 0 3px;
+}
+.positions-manager {
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.positions-manager > summary {
+  padding: 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.positions-manager > .record-list {
+  margin-top: 16px;
+}
+summary:focus-visible {
+  outline: 2px solid var(--ice);
+  outline-offset: 4px;
+}
 @media (min-width: 1550px) {
   main {
     padding-top: 50px;
@@ -953,10 +1148,12 @@ dialog::backdrop {
   .stats {
     margin: 23px 0;
     padding: 17px 0;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .stat {
-    padding: 0 10px;
+  .stat,
+  .stat:first-child,
+  .stat:last-child {
+    padding: 13px 15px;
   }
   .stat-value {
     font-size: 22px;
@@ -999,6 +1196,9 @@ dialog::backdrop {
   .row-actions {
     max-width: none;
     justify-content: flex-start;
+  }
+  .row-actions button {
+    min-height: 44px;
   }
   .tabs {
     margin-left: -20px;

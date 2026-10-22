@@ -978,7 +978,8 @@ dialog::backdrop {
 }
 .ownership-metric {
   display: inline-block;
-  margin: 12px 0 5px;
+  margin: 0;
+  flex-shrink: 0;
   padding: 7px 11px;
   background: #191d1f;
   color: #fff;
@@ -992,7 +993,39 @@ dialog::backdrop {
   color: #635038;
 }
 .other-officers {
-  margin-top: 28px;
+  margin-top: 16px;
+}
+.other-officers > summary,
+.ownership-notes > summary {
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 12px 0;
+}
+.record-row.ownership-row {
+  flex-direction: row;
+  gap: 12px;
+}
+.ownership-row > .record-main {
+  flex: 1;
+  min-width: 0;
+}
+.record-row .position-primary,
+.position-primary {
+  margin: 0;
+  color: #45545b;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.ownership-details {
+  margin-top: 4px;
+}
+.ownership-details > summary {
+  padding: 10px 0;
+}
+.ownership-position {
+  margin-top: 18px;
 }
 .other-officers h2 {
   font-size: 15px;

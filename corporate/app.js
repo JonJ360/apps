@@ -706,19 +706,30 @@ function renderEntity() {
       el(
         "div",
         { class: "heading" },
-        text(
-          "p",
-          kind === "roles"
-            ? "A title is not evidence of signing authority. Record authority and its source explicitly."
-            : kind === "ownership"
-              ? "Dated interests from recorded evidence. The register may be incomplete; percentages are not a certified cap table."
-              : kind === "obligations"
-                ? "Known obligations only. Dates are recorded, not inferred from jurisdiction."
-                : kind === "documents"
-                  ? "Private originals. New versions preserve every prior file. Links expire after 60 seconds."
-                  : "Organize this entity without changing its legal structure.",
-          "notice",
-        ),
+        kind === "ownership"
+          ? el(
+              "details",
+              { class: "ownership-notes" },
+              text("summary", "Ownership notes"),
+              text(
+                "p",
+                "Dated interests from recorded evidence. The register may be incomplete; percentages are not a certified cap table.",
+                "notice",
+              ),
+            )
+          : text(
+              "p",
+              kind === "roles"
+                ? "A title is not evidence of signing authority. Record authority and its source explicitly."
+                : kind === "ownership"
+                  ? "Dated interests from recorded evidence. The register may be incomplete; percentages are not a certified cap table."
+                  : kind === "obligations"
+                    ? "Known obligations only. Dates are recorded, not inferred from jurisdiction."
+                    : kind === "documents"
+                      ? "Private originals. New versions preserve every prior file. Links expire after 60 seconds."
+                      : "Organize this entity without changing its legal structure.",
+              "notice",
+            ),
         button(
           `+ Add ${SCHEMA[kind].singular}`,
           () => edit(kind, null, { entity_id: record.id }),
@@ -755,6 +766,38 @@ function positionStatus(r) {
 function positionLine(r) {
   return text("p", `${r.data.title} · ${positionStatus(r)}`, "position-line");
 }
+function primaryPosition(positions) {
+  // Prefer an officer title, never a long bank-authority description.
+  const compact = positions.filter(
+    (r) =>
+      r.data.title.length <= 64 &&
+      !/authoriz|bank|signing|signature|authority/i.test(r.data.title),
+  );
+  const rank = (r) =>
+    r.archived ? 3 : r.data.ends_on && r.data.ends_on < today() ? 2 : 0;
+  const role = compact.toSorted((a, b) => rank(a) - rank(b))[0];
+  if (!role)
+    return text(
+      "p",
+      positions.length
+        ? "Position details recorded · Unconfirmed"
+        : "No position recorded",
+      "position-primary",
+    );
+  const status = positionStatus(role);
+  const qualifier = role.archived
+    ? "Archived"
+    : /Future-dated/.test(status)
+      ? "Future-dated"
+      : /Historical/.test(status)
+        ? "Historical"
+        : "";
+  return text(
+    "p",
+    `${role.data.title} · ${qualifier ? `${qualifier} · ` : ""}Unconfirmed`,
+    "position-primary",
+  );
+}
 function personPositions(personId, entityId) {
   return personId
     ? rows("roles").filter(
@@ -773,12 +816,12 @@ function renderPositions(entity, interests) {
   if (otherIds.length)
     root.append(
       el(
-        "section",
+        "details",
         {
           class: "other-officers",
           "aria-label": "Other officers and positions",
         },
-        text("h2", "Other officers & positions"),
+        text("summary", "Other officers & positions"),
         text(
           "p",
           "Recorded positions with no ownership interest recorded here.",
@@ -789,7 +832,13 @@ function renderPositions(entity, interests) {
             "article",
             { class: "officer-summary" },
             text("h3", recordName(find("people", id))),
-            personPositions(id, entity.id).map(positionLine),
+            primaryPosition(personPositions(id, entity.id)),
+            el(
+              "details",
+              { class: "row-detail" },
+              text("summary", "More details"),
+              personPositions(id, entity.id).map((r) => recordRow("roles", r)),
+            ),
           ),
         ),
       ),
@@ -929,6 +978,46 @@ function recordRow(kind, r) {
           ),
         );
     }
+  }
+  if (kind === "ownership") {
+    const positions = personPositions(d.person_id, d.entity_id);
+    return el(
+      "article",
+      { class: "record-row ownership-row" },
+      el(
+        "div",
+        { class: "record-main" },
+        text(
+          "h3",
+          recordName(
+            find(
+              d.person_id ? "people" : "entities",
+              d.person_id || d.owner_entity_id,
+            ),
+          ),
+        ),
+        d.person_id ? primaryPosition(positions) : null,
+        r.archived ? text("span", "Archived", "tag warn") : null,
+        el(
+          "details",
+          { class: "row-detail ownership-details" },
+          text("summary", "More details"),
+          text("p", positionStatus(r), "position-status"),
+          info.map((s) => text("p", s)),
+          details(kind, r),
+          el("div", { class: "row-actions" }, actions),
+          positions.map((role) =>
+            el(
+              "section",
+              { class: "ownership-position" },
+              positionLine(role),
+              recordRow("roles", role),
+            ),
+          ),
+        ),
+      ),
+      text("span", `${d.percentage}%`, "ownership-metric"),
+    );
   }
   const summary = el(
     "details",
